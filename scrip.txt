@@ -1,0 +1,29 @@
+Sí. Para las fotos basta con editar dos archivos que ya existen en el backend y correr un comando en la base de datos, sin crear nada. El web no se daña: solo se agranda el espacio donde se guarda la imagen.
+
+Los cambios
+
+1. En la base de datos: que la columna url acepte textos largos (hoy el límite es 500). Se corre una sola vez en cada base de datos del grupo:
+
+sql
+-- [MOVIL] Permite guardar fotos de la cámara (texto base64), que superan 500 caracteres.
+ALTER TABLE imagenes_producto ALTER COLUMN url TYPE TEXT;
+
+2. En natymoo_database.sql, para que quien cree la base desde cero ya la tenga así. En la tabla imagenes_producto, cambia la línea de url:
+
+sql
+url             TEXT NOT NULL,  -- [MOVIL] Antes VARCHAR(500); TEXT para guardar fotos de la cámara
+
+3. En entity/ImagenProducto.java, cambia la anotación del campo url:
+
+java
+// [MOVIL] Modificado: antes era length = 500. Ahora TEXT para guardar fotos
+// tomadas con la cámara (base64). Debe coincidir con la columna en la base.
+@Column(nullable = false, columnDefinition = "TEXT")
+private String url;
+Por qué no daña el web
+Los links normales (https://...) siguen funcionando igual.
+Si el web muestra la imagen con <img src={url}>, también podrá mostrar las fotos de la cámara.
+Tres cuidados
+Los pasos 1 y 3 van juntos. El backend revisa al arrancar que el código coincida con la base de datos (ddl-auto=validate). Si alguien actualiza el código pero no corre el comando en su base, el backend no arranca. Avísenle a todo el grupo.
+Las fotos pesan más que un link. Con muchos productos, el catálogo puede cargar más lento en la app y en el web. Para un proyecto de clase no debería notarse mucho.
+Es un cambio en un backend compartido, así que conviene que el grupo esté de acuerdo antes de subirlo.
