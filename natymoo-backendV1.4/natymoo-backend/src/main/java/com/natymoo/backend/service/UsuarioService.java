@@ -15,6 +15,7 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository repository;
+     private final PasswordEncoder passwordEncoder;
 
     public List<Usuario> findAll() {
         return repository.findAll();
@@ -26,12 +27,16 @@ public class UsuarioService {
     }
 
     public Usuario create(Usuario entidad) {
+        String pwd = passwordEncoder.encode(entidad.getPassword);
+        entidad.setPasswordHash(pwd);
         return repository.save(entidad);
     }
 
-    public Usuario update(Long id, Usuario datosActualizados) {
+    public Usuario update(Long id, Usuario users) {
         Usuario existente = findById(id);
-        copiarCampos(existente, datosActualizados);
+
+        existente.setNombre(users.getNombre());
+        existente.setEmail(users.getEmail());
         return repository.save(existente);
     }
 
